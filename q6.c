@@ -1,135 +1,169 @@
 #include <stdio.h>
-int main(){
-    char vehicleType, parkingMem, disabledPer, avChargingStation;
-    float batteryLvl, reqChargingLvl, reqCharging, price, totalCharging, parkingCharges, discount;
+
+int main() {
+    char vehicleType, parkingMem, disabledPer, stationAvailable;
+    float batteryLvl, reqChargingLvl, reqCharging, baseRate, rate, discountRate, chargingCost, parkingCharges, discount;
     int parkingDur, currentTime, priority, peak;
 
-    parkingCharges = 0;
-    price = 0;
-    totalCharging = 0;
-    priority = 0;
     reqCharging = 0;
+    chargingCost = 0;
+    parkingCharges = 0;
     discount = 0;
+    baseRate = 0;
+    rate = 0;
+    discountRate = 0;
+    priority = 3;
     peak = 0;
 
-
-    // all the inputs
-    printf("Vehicle Type\n E = Electric Vehicle\n H = Hybrid Vehicle\n Enter E/N: ");
+    printf("Vehicle type (E = Electric, H = Hybrid): ");
     scanf(" %c", &vehicleType);
-    printf("Battery Level: ");
+    printf("Current battery level (0 - 100): ");
     scanf("%f", &batteryLvl);
-    printf("Required Charging level: ");
+    printf("Required charging level (0 - 100): ");
     scanf("%f", &reqChargingLvl);
-    printf("Parking Duration(in hours): ");
+    printf("Expected parking duration (hours): ");
     scanf("%d", &parkingDur);
-    printf("Current time(24 hr format): ");
+    printf("Current time in HHMM 24-hour form (e.g. 1830): ");
     scanf("%d", &currentTime);
-    printf("Do u have a parking membership(Y/N): ");
+    printf("Parking membership (Y/N): ");
     scanf(" %c", &parkingMem);
-    printf("Do u have a disabled person priority status(Y/N): ");
+    printf("Disabled-person priority (Y/N): ");
     scanf(" %c", &disabledPer);
-    printf("Is a parking station currently avaliable(Y/N): ");
-    scanf(" %c", &avChargingStation);
+    printf("Is the charging station available (Y/N): ");
+    scanf(" %c", &stationAvailable);
 
-    if (avChargingStation == 'N'){
-        if (vehicleType == 'H'){
+
+    if (vehicleType != 'E' && vehicleType != 'H') {
+        printf("Invalid vehicle type!\n");
+        return 1;
+    }
+    if (batteryLvl < 0 || batteryLvl > 100) {
+        printf("Invalid battery level!\n");
+        return 1;
+    }
+    if (reqChargingLvl < 0 || reqChargingLvl > 100) {
+        printf("Invalid required charging level!\n");
+        return 1;
+    }
+    if (parkingDur <= 0) {
+        printf("Invalid parking duration!\n");
+        return 1;
+    }
+    if (currentTime < 0 || currentTime > 2359) {
+        printf("Invalid time!\n");
+        return 1;
+    }
+    if (parkingMem != 'Y' && parkingMem != 'N') {
+        printf("Invalid membership input!\n");
+        return 1;
+    }
+    if (disabledPer != 'Y' && disabledPer != 'N') {
+        printf("Invalid priority status input!\n");
+        return 1;
+    }
+    if (stationAvailable != 'Y' && stationAvailable != 'N') {
+        printf("Invalid station availability input!\n");
+        return 1;
+    }
+
+
+    if (stationAvailable == 'N') {
+        if (vehicleType == 'H') {
             printf("Charging unavailable - Parking only\n");
-        }
-        else{
+        } else {
             printf("No charging slot available\n");
-        };
-    }
-    else{
-        if (vehicleType == 'H' && batteryLvl > 40){
-            printf("Vehicle does not qualify for EV charging\n");
         }
-        else{
-            if (reqChargingLvl <= batteryLvl){
-                printf("No charging required\n");
-            }
-            else{
-                reqCharging = reqChargingLvl - batteryLvl;
-                if (batteryLvl <= 15 && reqChargingLvl >= 80){
-                    priority = 1;
-                } 
-                else if(disabledPer == 'Y' || (parkingMem == 'Y' && batteryLvl <= 30)){
-                    priority = 2;
-                }
-                else{
-                    priority = 3;
-                };
-                if (currentTime < 1700 || currentTime > 2200){
-                    // off peak
-                    price = 35;
-                    peak = 0;
-                    if (parkingMem == 'Y' && priority != 1){
-                        price = 35 * 0.8;
-                        discount += 35 * 0.2;
-                    }
-                }
-                else {
-                    // peak
-                    price = 50;
-                    peak = 1;
-                    if (parkingMem == 'Y' && priority != 1){
-                        price = 50 * 0.9;
-                        discount += 50 * 0.1;
-                    }
-                };
-                totalCharging =  reqCharging * price;
-                if (parkingDur <= 2){
-                    parkingCharges = 200;
-                    printf("Standard parking duration\n");
-                }
-                else if (parkingDur <= 5){
-                    parkingCharges = 400;
-                    printf("Standard parking duration\n");
-                }
-                else if (parkingDur <= 8){
-                    parkingCharges = 700;
-                    printf("Standard parking duration\n");
-                }
-                else{
-                    parkingCharges = 700;
-                    printf("Long-stay warning: Please relocate your vehicle after charging\n");
-                };
-                if (parkingMem == 'Y'){
-                    discount += parkingCharges * 0.2;
-                    parkingCharges *= 0.8;
-                };
-                if (disabledPer == 'Y'){
-                    discount += parkingCharges;
-                    parkingCharges = 0;
-                }
-            };
-        };
-    };
+        return 0;
+    }
+
+    if (vehicleType == 'H' && batteryLvl >= 40) {
+        printf("Vehicle does not qualify for EV charging\n");
+        return 0;
+    }
+
+    if (reqChargingLvl <= batteryLvl) {
+        printf("No charging required\n");
+        return 0;
+    }
+
+    reqCharging = reqChargingLvl - batteryLvl;
+
+    if (batteryLvl <= 15 && reqChargingLvl >= 80) {
+        priority = 1;
+    } else if (disabledPer == 'Y' || (parkingMem == 'Y' && batteryLvl <= 30)) {
+        priority = 2;
+    } else {
+        priority = 3;
+    }
+
+    if (currentTime < 1700 || currentTime > 2200) {
+        peak = 0;
+        baseRate = 35;
+        discountRate = 0.20;
+    } else {
+        peak = 1;
+        baseRate = 50;
+        discountRate = 0.10;
+    }
+
+    rate = baseRate;
+    if (parkingMem == 'Y' && priority != 1) {
+        rate = baseRate * (1 - discountRate);
+        discount = discount + (reqCharging * baseRate * discountRate);
+    }
+
+    chargingCost = reqCharging * rate;
 
 
-    // outputs
-    printf("Vehicle Type : %c\n", vehicleType);
-    printf("Current Battery Percentage : %.2f\n", batteryLvl);
-    printf("Required Charging Percentage : %.2f\n", reqChargingLvl);
-    if (priority == 1){
-        printf("Emergency Charging Priority\n");
+    if (parkingDur <= 2) {
+        parkingCharges = 200;
+    } else if (parkingDur <= 5) {
+        parkingCharges = 400;
+    } else {
+        parkingCharges = 700;
     }
-    else if(priority == 2){
-        printf("Priority Charging\n");
+
+    if (parkingMem == 'Y') {
+        discount = discount + (parkingCharges * 0.20);
+        parkingCharges = parkingCharges * 0.80;
     }
-    else{
-        printf("Normal Charging\n");
-    };
-    if (peak == 0){
-        printf("Off-Peak\n");
+
+    if (disabledPer == 'Y') {
+        discount = discount + parkingCharges;
+        parkingCharges = 0;
     }
-    else {
-        printf("Peak\n");
-    };
-    printf("Charging cost : %.2f\n", totalCharging);
-    printf("Parking cost : %.2f\n", parkingCharges);
-    printf("Discount : %.2f\n", discount);
-    printf("Total Amount : %.2f\n", totalCharging + parkingCharges);
-    
-    
+
+    printf("\n----- Charging and Parking Bill -----\n");
+    printf("Vehicle type : %c\n", vehicleType);
+    printf("Current battery percentage : %.2f %%\n", batteryLvl);
+    printf("Required charging percentage : %.2f %%\n", reqChargingLvl);
+    printf("Charging units required : %.2f\n", reqCharging);
+
+    if (priority == 1) {
+        printf("Charging priority : Emergency Charging Priority\n");
+    } else if (priority == 2) {
+        printf("Charging priority : Priority Charging\n");
+    } else {
+        printf("Charging priority : Normal Charging\n");
+    }
+
+    if (peak == 0) {
+        printf("Time slot : Off-Peak\n");
+    } else {
+        printf("Time slot : Peak\n");
+    }
+
+    printf("Rate applied : Rs. %.2f per unit\n", rate);
+    printf("Charging cost : Rs. %.2f\n", chargingCost);
+    printf("Parking cost : Rs. %.2f\n", parkingCharges);
+    printf("Total discount : Rs. %.2f\n", discount);
+    printf("Final payable amount : Rs. %.2f\n", chargingCost + parkingCharges);
+
+    if (parkingDur > 8) {
+        printf("Long-stay warning: Please relocate your vehicle after charging\n");
+    } else {
+        printf("Standard parking duration\n");
+    }
+
     return 0;
 }
